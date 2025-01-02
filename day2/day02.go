@@ -16,45 +16,12 @@ func main() {
 	var numberSafe = 0
 
 	err := utils.ReadFileLineByLine(filename, func(line string) {
-
-		var increasing bool
-		levels := strings.Fields(line)
-		fmt.Println(levels)
-		//fmt.Println(len(levels))
-		for i := 0; i < len(levels); i++ { // does this need to be len(levels)-2 ????
-			fmt.Printf("i: %v\n", i)
-			if i == 0 && len(levels) >= 2 {
-				if levels[1] > levels[0] {
-					increasing = true
-				}
-				continue
-			}
-
-			// not sure this helper method really cleaned anything up here...
-			// second iteration is much better... multiple return values is crazy
-			lastLevelNum, currentLevelNum, err := convertLevelsToInts(levels[i-1], levels[i])
-
-			fmt.Printf("last: %v, current: %v\n", lastLevelNum, currentLevelNum)
-
-			if err != nil {
-				fmt.Println("Error:", err)
-				return
-			}
-
-			if increasing && currentLevelNum > lastLevelNum && currentLevelNum-lastLevelNum <= 3 && currentLevelNum-lastLevelNum >= 1 {
-				if i == len(levels)-1 {
-					numberSafe++
-				}
-				continue //so far so good
-			} else if !increasing && currentLevelNum < lastLevelNum && lastLevelNum-currentLevelNum <= 3 && lastLevelNum-currentLevelNum >= 1 { // decreasing
-				if i == len(levels)-1 {
-					numberSafe++
-				}
-				continue // so far so good
-			} else {
-				break // this one fails
-			}
-
+		isReportSafe, err := isReportSafe(line)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		if isReportSafe {
+			numberSafe++
 		}
 	})
 
@@ -63,6 +30,45 @@ func main() {
 	}
 
 	fmt.Printf("Number of Safe Reports: %v", numberSafe)
+}
+
+func isReportSafe(line string) (bool, error) {
+	var increasing bool
+	levels := strings.Fields(line)
+	for i := 1; i < len(levels); i++ {
+		// not sure this helper method really cleaned anything up here...
+		// second iteration is much better... multiple return values is crazy
+		lastLevelNum, currentLevelNum, err := convertLevelsToInts(levels[i-1], levels[i])
+
+		if i == 1 && currentLevelNum > lastLevelNum {
+			increasing = true
+			//fmt.Printf("Level is increasing\n")
+		}
+
+		if err != nil {
+			fmt.Println("Error:", err)
+			return false, err
+		}
+
+		if increasing && currentLevelNum > lastLevelNum && currentLevelNum-lastLevelNum <= 3 && currentLevelNum-lastLevelNum >= 1 {
+			if i == len(levels)-1 {
+				fmt.Printf("Level is correct: %v\n", levels)
+				return true, nil
+			}
+			continue //so far so good
+		} else if !increasing && currentLevelNum < lastLevelNum && lastLevelNum-currentLevelNum <= 3 && lastLevelNum-currentLevelNum >= 1 { // decreasing
+			if i == len(levels)-1 {
+				fmt.Printf("Level is correct: %v\n", levels)
+				return true, nil
+			}
+			continue // so far so good
+		} else {
+			//fmt.Printf("Level is wrong: %v\n", levels)
+			return false, nil
+		}
+	}
+	//fmt.Println("---------------------------------")
+	return false, nil
 }
 
 func convertLevelsToInts(lastLevel string, currentLevel string) (int, int, error) {

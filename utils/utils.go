@@ -39,9 +39,12 @@ func ReadFileLineByLine(filename string, processLine func(string)) error {
 	scanner := CreateLineScanner(file)
 
 	// Read and process each line
+	var i = 0
 	for scanner.Scan() {
 		processLine(scanner.Text())
+		i++
 	}
+	fmt.Printf("\nSuccessfully processed %v lines\n\n", i)
 
 	// Handle any errors during scanning
 	if err := scanner.Err(); err != nil {
